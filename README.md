@@ -49,4 +49,4 @@ Dockerfile          Production image
 
 ## License
 
-MIT (or your preference — update before publishing).
+[MIT](LICENSE).

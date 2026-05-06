@@ -1,0 +1,32 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Sync deps
+        run: uv sync --locked
+
+      - name: Lint
+        run: uv run ruff check app alembic
+
+      - name: App-import smoke test
+        env:
+          AMF_API_KEY: ci-test-key-1234567890ab
+          AMF_DATABASE_URL: sqlite:///:memory:
+        run: |
+          uv run python -c "from app.main import app; \
+            assert any(r.path == '/api/bookmarks' for r in app.routes if hasattr(r, 'path')), 'expected /api/bookmarks route'; \
+            print(f'ok — {len(app.routes)} routes')"
