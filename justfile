@@ -24,6 +24,29 @@ bootstrap:
 dev:
     op run --env-file={{ _root }}/.env.op -- docker compose -f {{ _root }}/docker-compose.yml up -d --build
 
+[doc('Rebuild & restart only the app container — reuses env from the running stack, never touches the db')]
+[group('dev')]
+rebuild:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cd {{ _root }}
+    proj=all-my-favs
+    app_id="$(docker ps -q --filter label=com.docker.compose.project=$proj --filter label=com.docker.compose.service=app)"
+    db_id="$(docker ps -q --filter label=com.docker.compose.project=$proj --filter label=com.docker.compose.service=db)"
+    if [[ -z "$app_id" ]]; then
+        echo "no running app container — use \`just dev\` for a first-time start" >&2
+        exit 1
+    fi
+    tmp_env="$(mktemp)"
+    trap 'rm -f "$tmp_env"' EXIT
+    docker exec "$app_id" sh -c 'printf "AMF_API_KEY=%s\n" "$AMF_API_KEY"' >> "$tmp_env"
+    if [[ -n "$db_id" ]]; then
+        docker exec "$db_id" sh -c 'printf "AMF_DB_PASSWORD=%s\n" "$POSTGRES_PASSWORD"' >> "$tmp_env"
+    fi
+    docker compose --env-file "$tmp_env" build app
+    docker compose --env-file "$tmp_env" up -d --no-deps app
+    echo "rebuilt and restarted app (db left alone)"
+
 [doc('Stop the local dev stack')]
 [group('dev')]
 down:
