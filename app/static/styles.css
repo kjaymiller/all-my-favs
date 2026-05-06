@@ -100,4 +100,5 @@ button.ghost.danger:hover { color: var(--danger); border-color: var(--danger); }
 .login { width: min(380px, 92vw); display: grid; gap: 12px; }
 .login h1 { margin: 0 0 4px; font-size: 22px; }
 .login label { display: grid; gap: 6px; font-size: 13px; color: var(--muted); }
-canvas { width: 100% !important; }
+.chart-wrap { height: 60px; position: relative; }
+.chart-wrap canvas { width: 100% !important; height: 100% !important; }

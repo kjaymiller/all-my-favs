@@ -13,9 +13,11 @@
     <h2>Links saved per day</h2>
     <span class="muted">Last 30 days</span>
   </header>
-  <canvas id="perDayChart" height="110"
-    data-days='{{ stats.per_day | map(attribute="day") | list | tojson }}'
-    data-counts='{{ stats.per_day | map(attribute="count") | list | tojson }}'></canvas>
+  <div class="chart-wrap">
+    <canvas id="perDayChart"
+      data-days='{{ stats.per_day | map(attribute="day") | list | tojson }}'
+      data-counts='{{ stats.per_day | map(attribute="count") | list | tojson }}'></canvas>
+  </div>
 </section>
 
 <div class="grid two">
