@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Sign in — all-my-favs</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body class="centered">
+  <form class="card login" method="post" action="/login">
+    <h1>all-my-favs</h1>
+    <label>API key
+      <input type="password" name="api_key" autofocus required />
+    </label>
+    <input type="hidden" name="next" value="{{ next }}" />
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+    <button type="submit">Unlock</button>
+  </form>
+</body>
+</html>

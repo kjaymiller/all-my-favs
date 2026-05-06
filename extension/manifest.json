@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "all-my-favs",
+  "version": "0.1.0",
+  "description": "Save the current tab to your self-hosted all-my-favs.",
+  "permissions": ["activeTab", "storage"],
+  "host_permissions": ["<all_urls>"],
+  "icons": {
+    "48": "icons/icon.svg",
+    "96": "icons/icon.svg",
+    "128": "icons/icon.svg"
+  },
+  "action": {
+    "default_title": "Save to all-my-favs",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon.svg",
+      "32": "icons/icon.svg",
+      "48": "icons/icon.svg"
+    }
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": false
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "all-my-favs@kjaymiller.dev"
+    }
+  }
+}

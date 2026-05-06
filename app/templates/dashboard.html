@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — all-my-favs{% endblock %}
+{% block content %}
+<section class="kpis">
+  <div class="kpi"><span class="kpi-label">Total</span><span class="kpi-value">{{ stats.total }}</span></div>
+  <div class="kpi"><span class="kpi-label">Today</span><span class="kpi-value">{{ stats.added_today }}</span></div>
+  <div class="kpi"><span class="kpi-label">Last 7 days</span><span class="kpi-value">{{ stats.added_last_7d }}</span></div>
+  <div class="kpi"><span class="kpi-label">Last 30 days</span><span class="kpi-value">{{ stats.added_last_30d }}</span></div>
+</section>
+
+<section class="card">
+  <header class="card-header">
+    <h2>Links saved per day</h2>
+    <span class="muted">Last 30 days</span>
+  </header>
+  <canvas id="perDayChart" height="110"
+    data-days='{{ stats.per_day | map(attribute="day") | list | tojson }}'
+    data-counts='{{ stats.per_day | map(attribute="count") | list | tojson }}'></canvas>
+</section>
+
+<div class="grid two">
+  <section class="card">
+    <header class="card-header"><h2>Top domains</h2></header>
+    {% if stats.top_domains %}
+    <ol class="bars">
+      {% set max_d = stats.top_domains[0].count or 1 %}
+      {% for d in stats.top_domains %}
+      <li>
+        <a href="/bookmarks?domain={{ d.domain }}" class="bar-label">{{ d.domain }}</a>
+        <span class="bar"><span class="bar-fill" style="width: {{ (d.count / max_d * 100) | round(1) }}%"></span></span>
+        <span class="bar-count">{{ d.count }}</span>
+      </li>
+      {% endfor %}
+    </ol>
+    {% else %}<p class="muted">No data yet.</p>{% endif %}
+  </section>
+
+  <section class="card">
+    <header class="card-header"><h2>Top tags</h2></header>
+    {% if stats.top_tags %}
+    <ol class="bars">
+      {% set max_t = stats.top_tags[0].count or 1 %}
+      {% for t in stats.top_tags %}
+      <li>
+        <a href="/bookmarks?tag={{ t.name }}" class="bar-label tag">{{ t.name }}</a>
+        <span class="bar"><span class="bar-fill" style="width: {{ (t.count / max_t * 100) | round(1) }}%"></span></span>
+        <span class="bar-count">{{ t.count }}</span>
+      </li>
+      {% endfor %}
+    </ol>
+    {% else %}<p class="muted">No tags yet.</p>{% endif %}
+  </section>
+</div>
+
+<section class="card">
+  <header class="card-header">
+    <h2>Recent</h2>
+    <a href="/bookmarks" class="muted">View all →</a>
+  </header>
+  {% if recent %}
+  <ul class="bookmark-list">
+    {% for b in recent %}
+    <li class="bookmark">
+      <a class="b-title" href="{{ b.url }}" target="_blank" rel="noopener">{{ b.title or b.url }}</a>
+      <div class="b-meta">
+        <span class="b-domain">{{ b.domain or "" }}</span>
+        {% for t in b.tags %}<a class="tag" href="/bookmarks?tag={{ t.name }}">{{ t.name }}</a>{% endfor %}
+        <time datetime="{{ b.created_at.isoformat() }}">{{ b.created_at.strftime("%Y-%m-%d") }}</time>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="muted">No bookmarks yet — add one from <a href="/bookmarks">Bookmarks</a>.</p>
+  {% endif %}
+</section>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="/static/dashboard.js"></script>
+{% endblock %}

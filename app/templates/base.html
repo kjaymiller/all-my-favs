@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}all-my-favs{% endblock %}</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/">all-my-favs</a>
+    <nav>
+      <a href="/">Dashboard</a>
+      <a href="/bookmarks">Bookmarks</a>
+      <a href="https://wytchr.kjaymiller.dev" target="_blank" rel="noopener" class="external">wytchr ↗</a>
+    </nav>
+    <form method="post" action="/logout" class="logout">
+      <button type="submit" class="ghost">Sign out</button>
+    </form>
+  </header>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

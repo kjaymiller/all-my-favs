@@ -1,0 +1,14 @@
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="AMF_", env_file=".env", extra="ignore")
+
+    api_key: str = Field(..., min_length=16)
+    database_url: str = "postgresql+psycopg://amf:amf@db:5432/amf"
+    cookie_name: str = "amf_session"
+    cookie_secure: bool = False
+
+
+settings = Settings()  # type: ignore[call-arg]

@@ -1,0 +1,14 @@
+{
+  "name": "all-my-favs-extension",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Firefox extension that saves the current tab to all-my-favs.",
+  "scripts": {
+    "lint": "web-ext lint",
+    "build": "web-ext build --overwrite-dest",
+    "run": "web-ext run"
+  },
+  "devDependencies": {
+    "web-ext": "^8.3.0"
+  }
+}
