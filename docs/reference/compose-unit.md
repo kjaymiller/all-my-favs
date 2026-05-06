@@ -6,7 +6,7 @@ The production deployment lives at `~/homelab/compose/all-my-favs/compose.yml`.
 
 | Service  | Image                | Container name  | Networks            | Notes |
 |----------|----------------------|-----------------|---------------------|-------|
-| `amf-db` | `postgres:18.3-alpine` | `amf-db`      | `amf_net`           | Private bridge network only — never on `proxy_net`. Healthcheck: `pg_isready -U amf -d amf`. Volume: `/srv/all-my-favs/pgdata:/var/lib/postgresql/data`. |
+| `amf-db` | `postgres:18.3-alpine` | `amf-db`      | `amf_net`           | Private bridge network only — never on `proxy_net`. Healthcheck: `pg_isready -U amf -d amf`. Volume: `/srv/all-my-favs/pg:/var/lib/postgresql` (PG18 manages a major-version subdir like `18/docker/`). |
 | `amf`    | `all-my-favs:local`  | `all-my-favs`   | `amf_net`, `proxy_net` | Built from `~/all-my-favs` via the `Dockerfile`. Depends on `amf-db` being healthy. |
 
 ## Networks
