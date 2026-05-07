@@ -54,6 +54,16 @@ def create_bookmark(payload: BookmarkIn, session: Session = Depends(get_session)
     return bm
 
 
+@router.get("/lookup", response_model=BookmarkOut)
+def lookup_by_url(url: str, session: Session = Depends(get_session)) -> Bookmark:
+    bm = session.scalar(
+        select(Bookmark).options(selectinload(Bookmark.tags)).where(Bookmark.url == url)
+    )
+    if bm is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "bookmark not found")
+    return bm
+
+
 @router.get("/{bookmark_id}", response_model=BookmarkOut)
 def get_bookmark(bookmark_id: int, session: Session = Depends(get_session)) -> Bookmark:
     bm = session.get(Bookmark, bookmark_id)

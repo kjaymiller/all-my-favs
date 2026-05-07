@@ -40,8 +40,11 @@ The values are stored in `browser.storage.local` — they're per-profile, not sy
 
 1. Open any page.
 2. Click the all-my-favs toolbar icon. URL and title pre-fill from the active tab.
-3. Add tags, comma-separated, in `tag:subtag` form: `tech:python, reading:longform`.
-4. Click **Save**. The popup closes when the API confirms.
+3. The header shows whether this URL is already saved:
+   - **`✓ Already saved`** — the existing title/tags/notes are loaded into the form, the button reads **Update**, and an **Open in dashboard ↗** link appears so you can jump to the stored record.
+   - **`New`** — first time saving this URL; the form is blank.
+4. Add or edit tags, comma-separated, in `tag:subtag` form: `tech:python, reading:longform`.
+5. Click **Save** / **Update**. The popup closes when the API confirms.
 
 `source` is automatically set to `firefox-ext` so you can filter dashboard stats by it later.
 

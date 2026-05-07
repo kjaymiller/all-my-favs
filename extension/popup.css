@@ -1,6 +1,16 @@
 :root { color-scheme: light dark; }
 body { font: 13px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 0; width: 320px; padding: 12px; }
-header { margin-bottom: 8px; }
+header { margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.badge { font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 600; letter-spacing: 0.2px; }
+.badge.saved { background: #e6f7ec; color: #1e7c3a; }
+.badge.new { background: #eef2ff; color: #3b4cca; }
+@media (prefers-color-scheme: dark) {
+  .badge.saved { background: #143a22; color: #6dd3a8; }
+  .badge.new { background: #1d2244; color: #9aa9ff; }
+}
+.status.ok { color: #1e7c3a; }
+.status.info { color: #555; }
+#open-existing { font-size: 12px; }
 form { display: grid; gap: 8px; }
 label { display: grid; gap: 4px; font-size: 12px; color: #777; }
 input, textarea { font: inherit; padding: 6px 8px; border: 1px solid #ccc; border-radius: 6px; background: Field; color: FieldText; }

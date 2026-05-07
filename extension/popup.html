@@ -5,7 +5,10 @@
   <link rel="stylesheet" href="popup.css" />
 </head>
 <body>
-  <header><strong>all-my-favs</strong></header>
+  <header>
+    <strong>all-my-favs</strong>
+    <span id="badge" class="badge" hidden></span>
+  </header>
   <form id="save">
     <label>URL <input id="url" type="url" required /></label>
     <label>Title <input id="title" type="text" /></label>
@@ -13,6 +16,7 @@
     <label>Notes <textarea id="notes" rows="2"></textarea></label>
     <div class="row">
       <button type="submit" id="submit">Save</button>
+      <a href="#" id="open-existing" hidden>Open in dashboard ↗</a>
       <a href="#" id="open-options">Settings</a>
     </div>
     <p id="status" class="status" hidden></p>
