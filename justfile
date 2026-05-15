@@ -158,6 +158,38 @@ ext-run:
 ext-lint:
     cd {{ _root }}/extension && npm install && npm run lint
 
+# ── Release ──────────────────────────────────────────────────────────────
+
+[doc('Bump calver version (YYYY.M.P) in pyproject.toml + extension/manifest.json. Part is minor|patch; year auto-rolls.')]
+[group('release')]
+version-bump part:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cd {{ _root }}
+    case "{{ part }}" in minor|patch) ;; *) echo "part must be minor|patch" >&2; exit 2 ;; esac
+    cur="$(uv run python -c 'import tomllib; print(tomllib.loads(open("pyproject.toml","rb").read().decode())["project"]["version"])')"
+    IFS=. read -r y m p <<<"$cur"
+    yr="$(date +%Y)"; mo="$(date +%-m)"
+    if [[ "$yr" != "$y" ]]; then
+        new="${yr}.${mo}.0"
+    else
+        case "{{ part }}" in
+            minor) new="${y}.$((m+1)).0" ;;
+            patch) new="${y}.${m}.$((p+1))" ;;
+        esac
+    fi
+    echo "bumping $cur -> $new"
+    sed -i "s/^version = \"$cur\"$/version = \"$new\"/" pyproject.toml
+    sed -i "s/\"version\": \"$cur\"/\"version\": \"$new\"/" extension/manifest.json
+    uv lock >/dev/null
+    echo "updated pyproject.toml, extension/manifest.json, uv.lock"
+    echo "next: git commit -am \"chore: bump version to $new\" && git tag v$new && git push && git push --tags"
+
+[doc('Show the current version from pyproject.toml')]
+[group('release')]
+version:
+    @uv run python -c 'import tomllib; print(tomllib.loads(open("pyproject.toml","rb").read().decode())["project"]["version"])'
+
 # ── Deploy (delegates to ~/homelab/justfile) ─────────────────────────────
 
 [doc('Deploy / redeploy the homelab stack at favs.kjaymiller.dev')]

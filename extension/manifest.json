@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "all-my-favs",
-  "version": "2026.5.1",
+  "version": "2026.5.2",
   "description": "Save the current tab to your self-hosted all-my-favs.",
   "permissions": ["activeTab", "scripting", "storage"],
   "host_permissions": ["<all_urls>"],
