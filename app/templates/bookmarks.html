@@ -31,6 +31,7 @@
     <li class="bookmark">
       <a class="b-title" href="{{ b.url }}" target="_blank" rel="noopener">{{ b.title or b.url }}</a>
       {% if b.description %}<p class="b-desc">{{ b.description }}</p>{% endif %}
+      {% if b.notes %}<p class="b-notes">{{ b.notes }}</p>{% endif %}
       <div class="b-meta">
         <span class="b-domain">{{ b.domain or "" }}</span>
         {% for t in b.tags %}<a class="tag" href="/bookmarks?tag={{ t.name }}">{{ t.name }}</a>{% endfor %}

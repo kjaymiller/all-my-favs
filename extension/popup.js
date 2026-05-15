@@ -31,12 +31,36 @@ async function lookupExisting(baseUrl, apiKey, url) {
   return res.json();
 }
 
+async function readPageDescription(tabId) {
+  try {
+    const [result] = await browser.scripting.executeScript({
+      target: { tabId },
+      func: () => {
+        const pick = (sel) => document.querySelector(sel)?.content?.trim();
+        return (
+          pick('meta[name="description"]') ||
+          pick('meta[property="og:description"]') ||
+          pick('meta[name="twitter:description"]') ||
+          ""
+        );
+      },
+    });
+    return result?.result || "";
+  } catch {
+    return "";
+  }
+}
+
 async function init() {
   const tabs = await browser.tabs.query({ active: true, currentWindow: true });
   const tab = tabs[0];
   if (tab) {
     $("url").value = tab.url || "";
     $("title").value = tab.title || "";
+    if (tab.id != null) {
+      const desc = await readPageDescription(tab.id);
+      if (desc) $("notes").value = desc;
+    }
   }
 
   const { baseUrl, apiKey } = await getConfig();

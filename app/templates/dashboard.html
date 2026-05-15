@@ -1,6 +1,20 @@
 {% extends "base.html" %}
 {% block title %}Dashboard — all-my-favs{% endblock %}
 {% block content %}
+<section class="card quick-add">
+  <header class="card-header">
+    <h2>Add by URL</h2>
+    <span class="muted">Title, description, and icon are pulled from the page.</span>
+  </header>
+  <form method="post" action="/bookmarks/quick-add" class="quick-add-form">
+    <input type="url" name="url" required placeholder="https://..." autofocus />
+    <input type="text" name="tags" placeholder="tags (optional, comma-separated)" />
+    <button type="submit">Save</button>
+  </form>
+  {% if added %}<p class="muted success">Saved.</p>{% endif %}
+  {% if error %}<p class="muted danger">{{ error }}</p>{% endif %}
+</section>
+
 <section class="kpis">
   <div class="kpi"><span class="kpi-label">Total</span><span class="kpi-value">{{ stats.total }}</span></div>
   <div class="kpi"><span class="kpi-label">Today</span><span class="kpi-value">{{ stats.added_today }}</span></div>

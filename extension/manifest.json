@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "all-my-favs",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Save the current tab to your self-hosted all-my-favs.",
-  "permissions": ["activeTab", "storage"],
+  "permissions": ["activeTab", "scripting", "storage"],
   "host_permissions": ["<all_urls>"],
   "icons": {
     "48": "icons/icon.svg",

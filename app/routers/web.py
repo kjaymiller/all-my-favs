@@ -11,7 +11,8 @@ from app.config import settings
 from app.db import get_session
 from app.models import Bookmark, Tag
 from app.routers.stats import compute_stats
-from app.services import upsert_bookmark
+from app.services import fetch_url_metadata, upsert_bookmark
+import httpx
 
 TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
@@ -58,7 +59,12 @@ def logout() -> Response:
 
 
 @router.get("/", response_class=HTMLResponse, dependencies=[Depends(require_api_key)])
-def dashboard(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
+def dashboard(
+    request: Request,
+    added: str | None = Query(default=None),
+    error: str | None = Query(default=None),
+    session: Session = Depends(get_session),
+) -> HTMLResponse:
     stats = compute_stats(session, days=30, top=10)
     recent = list(
         session.scalars(
@@ -69,8 +75,40 @@ def dashboard(request: Request, session: Session = Depends(get_session)) -> HTML
         ).all()
     )
     return templates.TemplateResponse(
-        request, "dashboard.html", {"stats": stats, "recent": recent}
+        request,
+        "dashboard.html",
+        {"stats": stats, "recent": recent, "added": added, "error": error},
     )
+
+
+@router.post("/bookmarks/quick-add", dependencies=[Depends(require_api_key)])
+def quick_add(
+    url: str = Form(...),
+    tags: str = Form(default=""),
+    session: Session = Depends(get_session),
+) -> Response:
+    url = url.strip()
+    if not url:
+        return RedirectResponse(url="/?error=missing+url", status_code=status.HTTP_303_SEE_OTHER)
+
+    meta: dict[str, str | None] = {"title": None, "description": None, "favicon_url": None}
+    try:
+        meta = fetch_url_metadata(url)
+    except (httpx.HTTPError, ValueError):
+        pass
+
+    tag_list = [t.strip().lower() for t in tags.split(",") if t.strip()]
+    upsert_bookmark(
+        session,
+        url=url,
+        title=meta.get("title"),
+        description=meta.get("description"),
+        favicon_url=meta.get("favicon_url"),
+        source="web-quick",
+        tags=tag_list or None,
+    )
+    session.commit()
+    return RedirectResponse(url="/?added=1", status_code=status.HTTP_303_SEE_OTHER)
 
 
 @router.get("/bookmarks", response_class=HTMLResponse, dependencies=[Depends(require_api_key)])
