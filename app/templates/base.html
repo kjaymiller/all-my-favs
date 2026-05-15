@@ -21,6 +21,16 @@
   <main>
     {% block content %}{% endblock %}
   </main>
+  <footer class="sitefoot">
+    <span class="brand">all-my-favs</span>
+    <span class="muted">v{{ app_version }}</span>
+    <span class="sep">·</span>
+    <a href="{{ source_url }}" target="_blank" rel="noopener">Source ↗</a>
+    <span class="sep">·</span>
+    <a href="/docs" target="_blank" rel="noopener">API docs</a>
+    <span class="sep">·</span>
+    <a href="/healthz" target="_blank" rel="noopener">Health</a>
+  </footer>
   {% block scripts %}{% endblock %}
 </body>
 </html>

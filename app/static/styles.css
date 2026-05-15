@@ -44,6 +44,17 @@ main { max-width: 1100px; margin: 24px auto; padding: 0 20px; display: grid; gap
 .topbar nav a { color: var(--muted); }
 .topbar nav a:hover { color: var(--text); text-decoration: none; }
 .topbar .logout { margin-left: auto; }
+.sitefoot {
+  max-width: 1100px; margin: 32px auto 24px; padding: 16px 20px 0;
+  border-top: 1px solid var(--border);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+  color: var(--muted); font-size: 13px;
+}
+.sitefoot .brand { font-weight: 600; color: var(--text); }
+.sitefoot .sep { color: var(--border); }
+.sitefoot a { color: var(--muted); }
+.sitefoot a:hover { color: var(--text); }
+.login-version { text-align: center; margin: 8px 0 0; font-size: 12px; }
 .muted { color: var(--muted); font-size: 13px; }
 .card {
   background: var(--surface); border: 1px solid var(--border);

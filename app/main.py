@@ -1,3 +1,4 @@
+from importlib.metadata import version as _pkg_version
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -8,8 +9,9 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.routers import bookmarks, io, stats, tags, web
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
+APP_VERSION = _pkg_version("all-my-favs")
 
-app = FastAPI(title="all-my-favs", version="0.1.0")
+app = FastAPI(title="all-my-favs", version=APP_VERSION)
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 app.include_router(web.router)

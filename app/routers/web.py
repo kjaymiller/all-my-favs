@@ -1,5 +1,7 @@
+from importlib.metadata import version as _pkg_version
 from pathlib import Path
 
+import httpx
 from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
@@ -12,10 +14,11 @@ from app.db import get_session
 from app.models import Bookmark, Tag
 from app.routers.stats import compute_stats
 from app.services import fetch_url_metadata, upsert_bookmark
-import httpx
 
 TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
+templates.env.globals["app_version"] = _pkg_version("all-my-favs")
+templates.env.globals["source_url"] = "https://github.com/kjaymiller/all-my-favs"
 
 router = APIRouter(tags=["web"])
 
