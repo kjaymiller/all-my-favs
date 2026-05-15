@@ -16,3 +16,10 @@ node_modules/
 extension/dist/
 extension/*.zip
 .DS_Store
+# Terraform — operational state must never live in this repo.
+# Only `infra.example/` is tracked; any real `infra/` is gitignored.
+infra/
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl

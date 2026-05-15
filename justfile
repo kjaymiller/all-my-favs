@@ -22,7 +22,7 @@ bootstrap:
 [doc('Build and run the local dev stack (Postgres + app on :8787)')]
 [group('dev')]
 dev:
-    op run --env-file={{ _root }}/.env.op -- docker compose -f {{ _root }}/docker-compose.yml up -d --build
+    op run --env-file={{ _root }}/.env.op -- docker compose -f {{ _root }}/docker-compose.yml -f {{ _root }}/docker-compose.dev.yml up -d --build
 
 [doc('Rebuild & restart only the app container — reuses env from the running stack, never touches the db')]
 [group('dev')]
@@ -43,29 +43,29 @@ rebuild:
     if [[ -n "$db_id" ]]; then
         docker exec "$db_id" sh -c 'printf "AMF_DB_PASSWORD=%s\n" "$POSTGRES_PASSWORD"' >> "$tmp_env"
     fi
-    docker compose --env-file "$tmp_env" build app
-    docker compose --env-file "$tmp_env" up -d --no-deps app
+    docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file "$tmp_env" build app
+    docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file "$tmp_env" up -d --no-deps app
     echo "rebuilt and restarted app (db left alone)"
 
 [doc('Stop the local dev stack')]
 [group('dev')]
 down:
-    docker compose -f {{ _root }}/docker-compose.yml down
+    docker compose -f {{ _root }}/docker-compose.yml -f {{ _root }}/docker-compose.dev.yml down
 
 [doc('Tail logs for the local dev stack')]
 [group('dev')]
 logs:
-    docker compose -f {{ _root }}/docker-compose.yml logs -f --tail=200
+    docker compose -f {{ _root }}/docker-compose.yml -f {{ _root }}/docker-compose.dev.yml logs -f --tail=200
 
 [doc('Open a shell in the local app container')]
 [group('dev')]
 shell:
-    docker compose -f {{ _root }}/docker-compose.yml exec app bash
+    docker compose -f {{ _root }}/docker-compose.yml -f {{ _root }}/docker-compose.dev.yml exec app bash
 
 [doc('Open psql in the local db container')]
 [group('dev')]
 psql:
-    docker compose -f {{ _root }}/docker-compose.yml exec db psql -U amf -d amf
+    docker compose -f {{ _root }}/docker-compose.yml -f {{ _root }}/docker-compose.dev.yml exec db psql -U amf -d amf
 
 # ── Code quality ─────────────────────────────────────────────────────────
 

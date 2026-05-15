@@ -1,31 +1,10 @@
 services:
-  db:
-    image: postgres:18.3-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: amf
-      POSTGRES_PASSWORD: ${AMF_DB_PASSWORD:-amf}
-      POSTGRES_DB: amf
-    volumes:
-      - amf_pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U amf -d amf"]
-      interval: 10s
-      timeout: 3s
-      retries: 10
-
   app:
     build: .
     restart: unless-stopped
-    depends_on:
-      db:
-        condition: service_healthy
     environment:
       AMF_API_KEY: "${AMF_API_KEY:?AMF_API_KEY must be set - run op run --env-file=.env.op -- docker compose up}"
-      AMF_DATABASE_URL: postgresql+psycopg://amf:${AMF_DB_PASSWORD:-amf}@db:5432/amf
+      AMF_DATABASE_URL: "${AMF_DATABASE_URL:?AMF_DATABASE_URL must be set - point at an external Postgres (see docker-compose.dev.yml for local)}"
       AMF_COOKIE_SECURE: ${AMF_COOKIE_SECURE:-false}
     ports:
       - "${AMF_PORT:-8787}:8000"
-
-volumes:
-  amf_pgdata:

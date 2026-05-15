@@ -1,0 +1,29 @@
+# Local-dev overlay. Adds an ephemeral Postgres alongside the app so
+# `just dev` works without provisioning external infra. Production
+# deployments (homelab) skip this file and inject AMF_DATABASE_URL
+# from a real DB.
+services:
+  db:
+    image: postgres:18.3-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: amf
+      POSTGRES_PASSWORD: ${AMF_DB_PASSWORD:-amf}
+      POSTGRES_DB: amf
+    volumes:
+      - amf_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U amf -d amf"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  app:
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      AMF_DATABASE_URL: postgresql+psycopg://amf:${AMF_DB_PASSWORD:-amf}@db:5432/amf
+
+volumes:
+  amf_pgdata:
