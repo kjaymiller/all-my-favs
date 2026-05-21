@@ -17,7 +17,13 @@ variable "service_name" {
 }
 
 variable "plan" {
-  description = "Aiven for PostgreSQL plan. 'hobbyist' is the dev tier (single node, do-nyc only)."
+  description = "Aiven for PostgreSQL plan slug."
   type        = string
-  default     = "hobbyist"
+  default     = "developer"
+}
+
+variable "pg_version" {
+  description = "PostgreSQL major version."
+  type        = string
+  default     = "18"
 }

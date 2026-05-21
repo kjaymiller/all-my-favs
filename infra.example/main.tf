@@ -21,6 +21,6 @@ resource "aiven_pg" "amf" {
   termination_protection = true
 
   pg_user_config {
-    pg_version = "16"
+    pg_version = var.pg_version
   }
 }
