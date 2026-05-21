@@ -23,6 +23,10 @@ COPY app ./app
 COPY alembic ./alembic
 COPY alembic.ini ./alembic.ini
 
+# Install the project itself (no deps — deps are pinned above) so
+# `importlib.metadata.version("all-my-favs")` resolves at runtime.
+RUN pip install --no-deps .
+
 EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=3s --retries=5 \
