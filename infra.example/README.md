@@ -1,7 +1,9 @@
 # infra.example
 
-Reference Terraform module for all-my-favs' Postgres (single Aiven for
-PostgreSQL service in `do-nyc`, exposes `database_url` output).
+Reference OpenTofu module for all-my-favs' Postgres (single Aiven for
+PostgreSQL service in `do-nyc`, exposes `database_url` output). HCL is
+unchanged from Terraform — `tofu` reads the same `terraform { ... }`
+block.
 
 These files are **not** used by any installer in this repo. The real
 state-bearing copy lives with the deployer — for the homelab deploy
@@ -14,6 +16,6 @@ somewhere you own, then point the installer at it:
 INFRA_DIR=/path/to/your/infra ./scripts/install.sh --provision-only
 ```
 
-The installer never writes Terraform state inside this repo. The state
-file contains the DB password in plaintext — treat the directory like
-a secret on disk.
+The installer never writes state inside this repo. The state file
+(`terraform.tfstate`) contains the DB password in plaintext — treat
+the directory like a secret on disk.

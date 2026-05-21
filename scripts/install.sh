@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 # all-my-favs installer.
 #
-# Provisions Aiven for PostgreSQL via Terraform and emits the resulting
+# Provisions Aiven for PostgreSQL via OpenTofu and emits the resulting
 # connection string. The homelab deploy captures stdout via
 #   DATABASE_URL=$(scripts/install.sh --provision-only --infra-dir <path>)
 # and injects it into the app container env — never writing it to disk.
 #
 # Requires:
 #   1Password CLI signed in (`op whoami`) — token fetched via `op read`
-#   terraform >= 1.5, op
+#   tofu >= 1.6, op
 #
-# NOTE: Terraform writes <infra-dir>/terraform.tfstate locally. That
+# NOTE: OpenTofu writes <infra-dir>/terraform.tfstate locally. That
 # state file contains the DB password in plaintext. Treat it as a
 # secret on this host. Repo-side state is rejected — see
 # infra.example/README.md.
@@ -58,7 +58,7 @@ esac
 
 AIVEN_OP_REF="${AIVEN_OP_REF:-op://Private/Aiven Homelab API KEY/credential}"
 
-for bin in terraform op; do
+for bin in tofu op; do
   if ! command -v "$bin" >/dev/null 2>&1; then
     echo "error: '$bin' not found in PATH." >&2
     exit 1
@@ -78,15 +78,15 @@ fi
 
 export TF_VAR_aiven_api_token="$AIVEN_API_TOKEN"
 
-log "==> terraform init"
-terraform -chdir="$INFRA_DIR" init -input=false >&3
+log "==> tofu init"
+tofu -chdir="$INFRA_DIR" init -input=false >&3
 
-log "==> terraform apply (provisioning Aiven for PostgreSQL)"
-terraform -chdir="$INFRA_DIR" apply -auto-approve -input=false >&3
+log "==> tofu apply (provisioning Aiven for PostgreSQL)"
+tofu -chdir="$INFRA_DIR" apply -auto-approve -input=false >&3
 
-DATABASE_URL="$(terraform -chdir="$INFRA_DIR" output -raw database_url)"
+DATABASE_URL="$(tofu -chdir="$INFRA_DIR" output -raw database_url)"
 if [[ -z "$DATABASE_URL" ]]; then
-  echo "error: terraform did not produce a database_url output." >&2
+  echo "error: tofu did not produce a database_url output." >&2
   exit 1
 fi
 
