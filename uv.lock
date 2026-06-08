@@ -18,7 +18,7 @@ wheels = [
 
 [[package]]
 name = "all-my-favs"
-version = "2026.6.2"
+version = "2026.7.0"
 source = { editable = "." }
 dependencies = [
     { name = "alembic" },
