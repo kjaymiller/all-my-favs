@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Edit bookmark — all-my-favs{% endblock %}
+{% block content %}
+<section class="card">
+  <header class="card-header">
+    <h2>Edit bookmark</h2>
+    <a class="ghost" href="/bookmarks">← Back</a>
+  </header>
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+  {% if notice %}<p class="success">{{ notice }}</p>{% endif %}
+  <form method="post" class="form-grid">
+    <label class="span-2">URL <input type="url" name="url" required value="{{ form.url }}" /></label>
+    <label>Title <input type="text" name="title" value="{{ form.title }}" /></label>
+    <label>Tags <input type="text" name="tags" value="{{ form.tags }}" placeholder="tech:python, reading:longform" /></label>
+    <label class="span-2">Description <input type="text" name="description" value="{{ form.description }}" /></label>
+    <label class="span-2">Notes <textarea name="notes" rows="2">{{ form.notes }}</textarea></label>
+    <label class="span-2">Favicon URL <input type="url" name="favicon_url" value="{{ form.favicon_url }}" placeholder="from og:image / icon" /></label>
+    <label class="span-2 checkbox">
+      <input type="checkbox" name="overwrite" value="1" {% if overwrite %}checked{% endif %} />
+      Overwrite filled fields when pulling metadata
+    </label>
+    <div class="span-2 actions">
+      <button type="submit" formaction="/bookmarks/{{ b.id }}/edit">Save changes</button>
+      <button type="submit" formaction="/bookmarks/{{ b.id }}/refresh" class="ghost">Pull metadata from page</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

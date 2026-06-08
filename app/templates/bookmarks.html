@@ -36,6 +36,7 @@
         <span class="b-domain">{{ b.domain or "" }}</span>
         {% for t in b.tags %}<a class="tag" href="/bookmarks?tag={{ t.name }}">{{ t.name }}</a>{% endfor %}
         <time datetime="{{ b.created_at.isoformat() }}">{{ b.created_at.strftime("%Y-%m-%d") }}</time>
+        <a class="ghost" href="/bookmarks/{{ b.id }}/edit">Edit</a>
         <form method="post" action="/bookmarks/{{ b.id }}/delete" class="inline">
           <button type="submit" class="ghost danger" onclick="return confirm('Delete this bookmark?')">Delete</button>
         </form>

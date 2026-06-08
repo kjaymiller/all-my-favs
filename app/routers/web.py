@@ -13,7 +13,12 @@ from app.config import settings
 from app.db import get_session
 from app.models import Bookmark, Tag
 from app.routers.stats import compute_stats
-from app.services import fetch_url_metadata, upsert_bookmark
+from app.services import (
+    extract_domain,
+    fetch_url_metadata,
+    get_or_create_tags,
+    upsert_bookmark,
+)
 
 TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
@@ -178,6 +183,152 @@ def create_via_form(
         source="web",
         tags=tag_list,
     )
+    session.commit()
+    return RedirectResponse(url="/bookmarks", status_code=status.HTTP_303_SEE_OTHER)
+
+
+def _edit_context(
+    bm: Bookmark,
+    *,
+    form: dict[str, str] | None = None,
+    error: str | None = None,
+    notice: str | None = None,
+    overwrite: bool = False,
+) -> dict[str, object]:
+    values = {
+        "url": bm.url,
+        "title": bm.title or "",
+        "description": bm.description or "",
+        "notes": bm.notes or "",
+        "tags": ", ".join(t.name for t in bm.tags),
+        "favicon_url": bm.favicon_url or "",
+    }
+    if form is not None:
+        values.update(form)
+    return {"b": bm, "form": values, "error": error, "notice": notice, "overwrite": overwrite}
+
+
+@router.get(
+    "/bookmarks/{bookmark_id}/edit",
+    response_class=HTMLResponse,
+    dependencies=[Depends(require_api_key)],
+)
+def edit_form(
+    request: Request,
+    bookmark_id: int,
+    error: str | None = Query(default=None),
+    session: Session = Depends(get_session),
+) -> HTMLResponse:
+    bm = session.scalar(
+        select(Bookmark).options(selectinload(Bookmark.tags)).where(Bookmark.id == bookmark_id)
+    )
+    if bm is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "bookmark not found")
+    return templates.TemplateResponse(request, "edit.html", _edit_context(bm, error=error))
+
+
+@router.post(
+    "/bookmarks/{bookmark_id}/refresh",
+    response_class=HTMLResponse,
+    dependencies=[Depends(require_api_key)],
+)
+def refresh_metadata(
+    request: Request,
+    bookmark_id: int,
+    url: str = Form(...),
+    title: str = Form(default=""),
+    description: str = Form(default=""),
+    notes: str = Form(default=""),
+    tags: str = Form(default=""),
+    favicon_url: str = Form(default=""),
+    overwrite: bool = Form(default=False),
+    session: Session = Depends(get_session),
+) -> HTMLResponse:
+    bm = session.scalar(
+        select(Bookmark).options(selectinload(Bookmark.tags)).where(Bookmark.id == bookmark_id)
+    )
+    if bm is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "bookmark not found")
+
+    form = {
+        "url": url,
+        "title": title,
+        "description": description,
+        "notes": notes,
+        "tags": tags,
+        "favicon_url": favicon_url,
+    }
+    try:
+        meta = fetch_url_metadata(url.strip())
+    except (httpx.HTTPError, ValueError):
+        return templates.TemplateResponse(
+            request,
+            "edit.html",
+            _edit_context(
+                bm, form=form, overwrite=overwrite, error="Could not fetch metadata from that URL."
+            ),
+        )
+
+    def merge(field: str, current: str) -> str:
+        fetched = (meta.get(field) or "").strip()
+        if fetched and (overwrite or not current.strip()):
+            return fetched
+        return current
+
+    changed = []
+    for field, current in (("title", title), ("description", description), ("favicon_url", favicon_url)):
+        merged = merge(field, current)
+        form[field] = merged
+        if merged != current:
+            changed.append(field)
+    notice = (
+        f"Pulled metadata — updated {', '.join(changed)}." if changed else "No new metadata found."
+    )
+    return templates.TemplateResponse(
+        request,
+        "edit.html",
+        _edit_context(bm, form=form, overwrite=overwrite, notice=notice),
+    )
+
+
+@router.post("/bookmarks/{bookmark_id}/edit", dependencies=[Depends(require_api_key)])
+def edit_via_form(
+    bookmark_id: int,
+    url: str = Form(...),
+    title: str | None = Form(default=None),
+    description: str | None = Form(default=None),
+    notes: str | None = Form(default=None),
+    tags: str = Form(default=""),
+    favicon_url: str | None = Form(default=None),
+    session: Session = Depends(get_session),
+) -> Response:
+    bm = session.scalar(
+        select(Bookmark).options(selectinload(Bookmark.tags)).where(Bookmark.id == bookmark_id)
+    )
+    if bm is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "bookmark not found")
+
+    url = url.strip()
+    if not url:
+        return RedirectResponse(
+            url=f"/bookmarks/{bookmark_id}/edit?error=missing+url",
+            status_code=status.HTTP_303_SEE_OTHER,
+        )
+    if url != bm.url:
+        clash = session.scalar(select(Bookmark.id).where(Bookmark.url == url))
+        if clash is not None:
+            return RedirectResponse(
+                url=f"/bookmarks/{bookmark_id}/edit?error=another+bookmark+already+uses+that+URL",
+                status_code=status.HTTP_303_SEE_OTHER,
+            )
+        bm.url = url
+        bm.domain = extract_domain(url)
+
+    bm.title = (title or "").strip() or None
+    bm.description = (description or "").strip() or None
+    bm.notes = (notes or "").strip() or None
+    bm.favicon_url = (favicon_url or "").strip() or None
+    bm.tags = get_or_create_tags(session, [t.strip().lower() for t in tags.split(",") if t.strip()])
     session.commit()
     return RedirectResponse(url="/bookmarks", status_code=status.HTTP_303_SEE_OTHER)
 

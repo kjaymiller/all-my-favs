@@ -106,6 +106,9 @@ button.ghost.danger:hover { color: var(--danger); border-color: var(--danger); }
 .form-grid label { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
 .form-grid label input, .form-grid label textarea { color: var(--text); }
 .form-grid .span-2 { grid-column: span 2; }
+.form-grid .checkbox { grid-auto-flow: column; justify-content: start; align-items: center; gap: 8px; }
+.form-grid .checkbox input { width: auto; }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .quick-add-form { display: flex; gap: 8px; flex-wrap: wrap; }
 .quick-add-form input[type="url"] { flex: 2; min-width: 240px; }
 .quick-add-form input[type="text"] { flex: 1; min-width: 160px; }
