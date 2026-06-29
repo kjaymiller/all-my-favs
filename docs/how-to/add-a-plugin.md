@@ -51,8 +51,8 @@ configured request **server-side**, so secrets never reach the browser.
 
 Unknown placeholders render as empty strings.
 
-- **`GET`** → `params` are sent as the query string.
-- **`POST`** (or any non-GET) → `params` are sent as a JSON body.
+Every plugin is a webhook: `params` are always sent as a **JSON body**, for both `GET` and `POST`.
+The `method` field only selects the HTTP verb.
 
 ## 3. Secrets
 

@@ -1,8 +1,9 @@
 """Rule-based plugins: per-fav action buttons that fire a backend REST call.
 
 Plugins are declared as data in a JSON ruleset (see ``app/plugins.json``). Each rule
-matches favs by a URL regex and, when its button is clicked, all-my-favs makes the
-configured outbound request (``GET`` query params or ``POST`` JSON body) server-side.
+matches favs by a URL regex and, when its button is clicked, all-my-favs fires the
+configured outbound webhook server-side — always with a JSON body, for both ``GET``
+and ``POST`` (the ``method`` only selects the HTTP verb).
 
 No client-side cross-origin calls: any secrets stay on the server. Add a plugin by
 appending a rule to the JSON — no code change required.
@@ -93,11 +94,11 @@ def get_plugin(key: str) -> PluginRule | None:
 
 
 def run_plugin(rule: PluginRule, bm: Bookmark, *, timeout: float = 10.0) -> None:
-    """Dispatch the rule's outbound request. Raises ``httpx.HTTPError`` on failure."""
+    """Dispatch the rule's outbound webhook with a JSON body (GET and POST alike).
+
+    Raises ``httpx.HTTPError`` on failure.
+    """
     data = {k: _render(v, bm) for k, v in rule.params.items()}
     with httpx.Client(timeout=timeout, follow_redirects=True) as client:
-        if rule.method == "GET":
-            resp = client.get(rule.url, params=data, headers=rule.headers)
-        else:
-            resp = client.request(rule.method, rule.url, json=data, headers=rule.headers)
+        resp = client.request(rule.method, rule.url, json=data, headers=rule.headers)
         resp.raise_for_status()
