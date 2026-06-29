@@ -12,6 +12,7 @@ from app.auth import require_api_key
 from app.config import settings
 from app.db import get_session
 from app.models import Bookmark, Tag
+from app.plugins import get_plugin, plugins_for, run_plugin
 from app.routers.stats import compute_stats
 from app.services import (
     extract_domain,
@@ -27,6 +28,7 @@ try:
 except PackageNotFoundError:
     templates.env.globals["app_version"] = "dev"
 templates.env.globals["source_url"] = "https://github.com/kjaymiller/all-my-favs"
+templates.env.globals["plugins_for"] = plugins_for
 
 router = APIRouter(tags=["web"])
 
@@ -129,6 +131,8 @@ def bookmarks_page(
     tag: str | None = Query(default=None),
     domain: str | None = Query(default=None),
     page: int = Query(default=1, ge=1),
+    plugin_ok: str | None = Query(default=None),
+    plugin_err: str | None = Query(default=None),
     session: Session = Depends(get_session),
 ) -> HTMLResponse:
     page_size = 25
@@ -160,6 +164,8 @@ def bookmarks_page(
             "page_size": page_size,
             "total": total,
             "has_next": page * page_size < total,
+            "plugin_ok": plugin_ok,
+            "plugin_err": plugin_err,
         },
     )
 
@@ -341,3 +347,28 @@ def delete_via_form(bookmark_id: int, session: Session = Depends(get_session)) -
     session.delete(bm)
     session.commit()
     return RedirectResponse(url="/bookmarks", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@router.post(
+    "/bookmarks/{bookmark_id}/plugins/{plugin_key}", dependencies=[Depends(require_api_key)]
+)
+def run_plugin_action(
+    bookmark_id: int, plugin_key: str, session: Session = Depends(get_session)
+) -> Response:
+    bm = session.scalar(
+        select(Bookmark).options(selectinload(Bookmark.tags)).where(Bookmark.id == bookmark_id)
+    )
+    if bm is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "bookmark not found")
+    plugin = get_plugin(plugin_key)
+    if plugin is None or not plugin.matches(bm):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "plugin not available for this bookmark")
+    try:
+        run_plugin(plugin, bm)
+    except httpx.HTTPError:
+        return RedirectResponse(
+            url=f"/bookmarks?plugin_err={plugin.key}", status_code=status.HTTP_303_SEE_OTHER
+        )
+    return RedirectResponse(
+        url=f"/bookmarks?plugin_ok={plugin.key}", status_code=status.HTTP_303_SEE_OTHER
+    )
