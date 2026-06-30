@@ -15,5 +15,5 @@ jobs:
       - name: smoke
         env:
           AMF_API_KEY: ci-test-key-1234567890ab
-          AMF_DATABASE_URL: sqlite:///:memory:
+          AMF_DATABASE_URL: "sqlite:///:memory:"
         run: uv run python -c "from app.main import app; print(f'ok {len(app.routes)} routes')"
