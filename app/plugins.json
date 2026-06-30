@@ -1,29 +1,3 @@
 {
-  "plugins": [
-    {
-      "key": "microblog",
-      "label": "Microblog",
-      "pattern": ".",
-      "url": "https://cms.kjaymiller.dev/microblog/new",
-      "method": "GET",
-      "params": {
-        "url": "{url}",
-        "description": "{description}",
-        "tags": "{tags}"
-      }
-    },
-    {
-      "key": "wytcher",
-      "label": "Add to wytcher",
-      "pattern": "youtube\\.com|youtu\\.be",
-      "url": "https://wytchr.kjaymiller.dev/channels/add",
-      "method": "POST",
-      "params": {
-        "url": "{url}"
-      },
-      "headers": {
-        "X-Plugin-Secret": "${WYTCHER_WEBHOOK_SECRET}"
-      }
-    }
-  ]
+  "plugins": []
 }
