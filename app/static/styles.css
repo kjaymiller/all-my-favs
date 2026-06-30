@@ -89,6 +89,14 @@ main { max-width: 1100px; margin: 24px auto; padding: 0 20px; display: grid; gap
   background: var(--surface-2); color: var(--text); font-size: 12px;
 }
 .tag:hover { text-decoration: none; background: var(--border); }
+/* Plugin actions render as regular links, whether GET (<a>) or POST (submit button). */
+.plugin-form { display: contents; }
+.plugin-link {
+  background: none; border: 0; padding: 0;
+  font: inherit; font-weight: 400; color: var(--accent);
+  cursor: pointer; text-decoration: none;
+}
+.plugin-link:hover { text-decoration: underline; }
 .search { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
 .search input { flex: 1; min-width: 160px; }
 input, textarea, button {

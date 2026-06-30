@@ -39,12 +39,12 @@
         <a class="ghost" href="/bookmarks/{{ b.id }}/edit">Edit</a>
         {% for p in plugins_for(b) %}
         {% if p.method == "POST" %}
-        <form method="post" action="{{ p.url }}" target="_blank" class="inline">
+        <form method="post" action="{{ p.url }}" target="_blank" class="plugin-form">
           {% for k, v in p.rendered_params(b).items() %}<input type="hidden" name="{{ k }}" value="{{ v }}" />{% endfor %}
-          <button type="submit" class="ghost">{{ p.label }}</button>
+          <button type="submit" class="plugin-link">{{ p.label }}</button>
         </form>
         {% else %}
-        <a class="ghost" href="{{ p.href(b) }}" target="_blank" rel="noopener">{{ p.label }}</a>
+        <a class="plugin-link" href="{{ p.href(b) }}" target="_blank" rel="noopener">{{ p.label }}</a>
         {% endif %}
         {% endfor %}
         <form method="post" action="/bookmarks/{{ b.id }}/delete" class="inline">
