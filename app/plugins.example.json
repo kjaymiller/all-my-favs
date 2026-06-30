@@ -1,0 +1,24 @@
+{
+  "plugins": [
+    {
+      "label": "Microblog",
+      "pattern": ".",
+      "url": "https://cms.kjaymiller.dev/microblog/new",
+      "method": "GET",
+      "params": {
+        "url": "{url}",
+        "description": "{description}",
+        "tags": "{tags}"
+      }
+    },
+    {
+      "label": "Add to wytcher",
+      "pattern": "youtube\\.com|youtu\\.be",
+      "url": "https://wytchr.kjaymiller.dev/channels/add",
+      "method": "POST",
+      "params": {
+        "url": "{url}"
+      }
+    }
+  ]
+}

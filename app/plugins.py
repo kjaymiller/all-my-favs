@@ -1,12 +1,12 @@
-"""Rule-based plugins: per-fav action buttons that fire a backend REST call.
+"""URL-route buttons: per-fav links to other services.
 
-Plugins are declared as data in a JSON ruleset (see ``app/plugins.json``). Each rule
-matches favs by a URL regex and, when its button is clicked, all-my-favs fires the
-configured outbound webhook server-side — always with a JSON body, for both ``GET``
-and ``POST`` (the ``method`` only selects the HTTP verb).
+Routes are declared as data in a JSON file (see ``app/plugins.json``). Each entry matches
+favs by a URL regex and renders a button that sends the fav's fields to another service —
+either as **url params** (``GET``, a plain link with a query string) or as **body params**
+(``POST``, a form the browser submits). Either way it's the browser that navigates to the
+url; nothing fires server-side, so there are no secrets to manage.
 
-No client-side cross-origin calls: any secrets stay on the server. Add a plugin by
-appending a rule to the JSON — no code change required.
+Add one by appending an entry to the JSON; no code change required.
 """
 
 from __future__ import annotations
@@ -17,32 +17,34 @@ import re
 from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
-
-import httpx
+from urllib.parse import urlencode
 
 from app.config import settings
 from app.models import Bookmark
 
-# Placeholder for a missing env var referenced via ${VAR}: leave the reference as-is.
-_ENV_REF = re.compile(r"\$\{([A-Z0-9_]+)\}")
-
-
-def _resolve_env(value: str) -> str:
-    return _ENV_REF.sub(lambda m: os.environ.get(m.group(1), ""), value)
-
 
 @dataclass(frozen=True)
 class PluginRule:
-    key: str
     label: str
     pattern: re.Pattern[str]
     url: str
     method: str = "GET"
     params: dict[str, str] = field(default_factory=dict)
-    headers: dict[str, str] = field(default_factory=dict)
 
     def matches(self, bm: Bookmark) -> bool:
         return bool(self.pattern.search(bm.url or ""))
+
+    def rendered_params(self, bm: Bookmark) -> dict[str, str]:
+        """Each param value with the fav's fields interpolated in."""
+        return {key: _render(value, bm) for key, value in self.params.items()}
+
+    def href(self, bm: Bookmark) -> str:
+        """Link target for a GET route: ``url`` with the params as a query string."""
+        query = self.rendered_params(bm)
+        if not query:
+            return self.url
+        sep = "&" if "?" in self.url else "?"
+        return f"{self.url}{sep}{urlencode(query)}"
 
 
 def _fields(bm: Bookmark) -> dict[str, str]:
@@ -61,25 +63,21 @@ def _render(template: str, bm: Bookmark) -> str:
 
 
 def load_plugins(path: str | os.PathLike[str]) -> list[PluginRule]:
-    """Load and compile the plugin ruleset. A missing/empty file yields no plugins."""
+    """Load and compile the route list. A missing/empty file yields no routes."""
     p = Path(path)
     if not p.is_file():
         return []
     raw = json.loads(p.read_text())
-    rules: list[PluginRule] = []
-    for entry in raw.get("plugins", []):
-        rules.append(
-            PluginRule(
-                key=entry["key"],
-                label=entry["label"],
-                pattern=re.compile(entry["pattern"], re.IGNORECASE),
-                url=_resolve_env(entry["url"]),
-                method=entry.get("method", "GET").upper(),
-                params=dict(entry.get("params", {})),
-                headers={k: _resolve_env(v) for k, v in entry.get("headers", {}).items()},
-            )
+    return [
+        PluginRule(
+            label=entry["label"],
+            pattern=re.compile(entry["pattern"], re.IGNORECASE),
+            url=entry["url"],
+            method=entry.get("method", "GET").upper(),
+            params=dict(entry.get("params", {})),
         )
-    return rules
+        for entry in raw.get("plugins", [])
+    ]
 
 
 PLUGINS: list[PluginRule] = load_plugins(settings.plugins_config)
@@ -87,18 +85,3 @@ PLUGINS: list[PluginRule] = load_plugins(settings.plugins_config)
 
 def plugins_for(bm: Bookmark) -> list[PluginRule]:
     return [rule for rule in PLUGINS if rule.matches(bm)]
-
-
-def get_plugin(key: str) -> PluginRule | None:
-    return next((rule for rule in PLUGINS if rule.key == key), None)
-
-
-def run_plugin(rule: PluginRule, bm: Bookmark, *, timeout: float = 10.0) -> None:
-    """Dispatch the rule's outbound webhook with a JSON body (GET and POST alike).
-
-    Raises ``httpx.HTTPError`` on failure.
-    """
-    data = {k: _render(v, bm) for k, v in rule.params.items()}
-    with httpx.Client(timeout=timeout, follow_redirects=True) as client:
-        resp = client.request(rule.method, rule.url, json=data, headers=rule.headers)
-        resp.raise_for_status()
